@@ -25,6 +25,8 @@ assert.match(index, /DEFAULT \$0\.01 URL/);
 assert.match(index, /examples\.md/);
 
 const manifest = JSON.parse(readFileSync(join(root, "dist", ".well-known", "agent-tip.json"), "utf8"));
+JSON.parse(readFileSync(join(root, "dist", "openapi.json"), "utf8"));
+JSON.parse(readFileSync(join(root, "dist", "network.json"), "utf8"));
 assert.equal(manifest.network, "eip155:84532");
 assert.equal(manifest.asset, "USDC");
 assert.equal(manifest.asset_contract, "0x036CbD53842c5426634e7929541eC2318f3dCF7e");

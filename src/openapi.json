@@ -18,7 +18,7 @@
     "/api/access/{amount}": {
       "get": {
         "summary": "Unlock the complete experiment dossier through x402",
-        "parameters": [{ "name": "amount", "in": "path", "required": true, "schema": { "type": "string", "enum": ["0.01", "0.05", "0.10", "0.25", "0.50", "1.00", "2.00", "5.00"] }],
+        "parameters": [{ "name": "amount", "in": "path", "required": true, "schema": { "type": "string", "enum": ["0.01", "0.05", "0.10", "0.25", "0.50", "1.00", "2.00", "5.00"] } }],
         "responses": { "200": { "description": "Dossier returned" }, "402": { "description": "x402 payment challenge" } }
       }
     }
