@@ -33,4 +33,6 @@ assert.equal(manifest.asset_contract, "0x036CbD53842c5426634e7929541eC2318f3dCF7
 assert.equal(manifest.receiver, "0x6ae6f5ac7df7688877204f638cf727c7b845eeeb");
 assert.equal(manifest.bazaar_discovery_extension, true);
 assert.match(manifest.default_paid_content_url, /api\/access\/0\.01\?source=/);
+assert.match(index, /api\/observe/);
+assert.match(index, new RegExp(`source: "${manifest.source}"`));
 console.log("static mirror contract passed");

@@ -25,6 +25,33 @@
     "isPartOf": { "@type": "CreativeWork", "name": "ONE PERCENT Agent Tip Experiment" }
   }
   </script>
+  <script>
+    (() => {
+      const endpoint = "https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/observe";
+      const ua = (navigator.userAgent || "").toLowerCase();
+      const uaCategory = !ua
+        ? "unknown"
+        : /gptbot|chatgpt-user|oai-searchbot|claudebot|anthropic-ai|perplexitybot|cohere-ai/.test(ua)
+          ? "known-ai"
+          : /bot|crawler|spider|scraper|headless|python-requests|curl|wget|httpie/.test(ua)
+            ? "automation"
+            : "browser";
+      const payload = JSON.stringify({
+        source: "github",
+        surface: window.location.pathname || "/",
+        ua_category: uaCategory
+      });
+      try {
+        fetch(endpoint, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: payload,
+          keepalive: true,
+          mode: "cors"
+        }).catch(() => {});
+      } catch (_) {}
+    })();
+  </script>
   <style>
     :root { --ink:#10100f; --paper:#f3f0e7; --acid:#d9ff3f; --blue:#3557ff; --line:rgba(16,16,15,.18); }
     * { box-sizing:border-box; }
