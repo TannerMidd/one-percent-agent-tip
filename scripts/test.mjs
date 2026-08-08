@@ -25,8 +25,6 @@ const expectedTools = [
   { id: "site-audit", priceUsd: "0.10" },
   { id: "budget-guard", priceUsd: "0.01" },
 ];
-const analyticsSite = "https://one-percent-crawler-observatory.middletontanne137269.chatgpt.site";
-
 const hosts = [
   {
     name: "Vercel",
@@ -180,7 +178,7 @@ try {
     ]) {
       assert.ok(homepage.includes(relation[0]) && homepage.includes(relation[1]), `${host.name}: labelled section ${relation[1]}`);
     }
-    assert.ok(homepage.includes('one-percent-crawler-observatory.middletontanne137269.chatgpt.site/analytics'), `${host.name}: Analytics project link`);
+    assert.doesNotMatch(homepage, /Analytics|one-percent-crawler-observatory/i, `${host.name}: private analytics is not advertised`);
 
     assert.ok(homepage.includes(`${canonicalOrigin}/api/observe`), `${host.name}: aggregate observation endpoint`);
     assert.ok(homepage.includes(`source: "${host.source}"`), `${host.name}: observation source`);
@@ -285,7 +283,11 @@ try {
     const network = json(join(output, "network.json"));
     assert.equal(network.current_mirror.url, `${host.url}/`, `${host.name}: network mirror URL`);
     assert.equal(network.current_mirror.source, host.source, `${host.name}: network source`);
-    assert.ok(network.crawler_teasers.includes(analyticsSite), `${host.name}: analytics site in network list`);
+    assert.deepEqual(network.crawler_teasers, [
+      "https://agent-tip-protocol.middletontanne137269.chatgpt.site",
+      "https://http-402-tip-jar.middletontanne137269.chatgpt.site",
+      "https://agent-gratitude-index.middletontanne137269.chatgpt.site",
+    ], `${host.name}: public network excludes private analytics`);
 
     const legacy = json(join(output, ".well-known", "agent-tip.json"));
     assert.equal(legacy.title, pageTitle, `${host.name}: preserved legacy title`);
