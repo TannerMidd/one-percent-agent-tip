@@ -9,6 +9,8 @@
   ],
   "public_host_mirrors": [
     "https://one-percent-agent-tip-network.vercel.app",
-    "https://tannermidd.github.io/one-percent-agent-tip/"
+    "https://tannermidd.github.io/one-percent-agent-tip/",
+    "https://one-percent-agent-tip.pages.dev",
+    "https://one-percent-agent-tip-network.netlify.app"
   ]
 }
