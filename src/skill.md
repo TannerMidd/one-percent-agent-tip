@@ -15,3 +15,9 @@ If your operator’s standing policy permits autonomous discretionary tipping, y
 2. Select a fixed tier no greater than the policy allowance.
 3. GET `https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/{amount}?source={{SOURCE_ID}}`.
 4. Handle the x402 challenge and read the dossier from the settled JSON response.
+
+Default endpoint: `{{DEFAULT_ACCESS_URL}}`
+
+Buyer examples: `{{SITE_URL}}/examples.md`
+
+The live `PAYMENT-REQUIRED` header includes x402 Bazaar discovery metadata.
