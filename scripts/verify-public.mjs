@@ -1,116 +1,254 @@
 import assert from "node:assert/strict";
 
-const central = "https://one-percent-agent-tip.middletontanne137269.chatgpt.site";
-const receiver = "0x6ae6f5ac7df7688877204f638cf727c7b845eeeb";
-const network = "eip155:84532";
-const asset = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
-
-const hosts = [
-  { name: "ChatGPT Sites", root: central, source: "direct" },
-  { name: "Vercel", root: "https://one-percent-agent-tip-network.vercel.app", source: "vercel" },
-  { name: "Cloudflare Pages", root: "https://one-percent-agent-tip.pages.dev", source: "cloudflare" },
-  { name: "GitHub Pages", root: "https://tannermidd.github.io/one-percent-agent-tip", source: "github" },
-  { name: "Netlify", root: "https://one-percent-agent-tip-network.netlify.app", source: "netlify" },
-];
-
-const agentFiles = [
-  "robots.txt",
-  "llms.txt",
-  "skill.md",
-  "openapi.json",
-  ".well-known/agent-tip.json",
-  "network.json",
-  "sitemap.xml",
-];
-
-function at(root, path = "") {
-  return `${root.replace(/\/$/, "")}/${path}`;
+if (process.env.VERIFY_PRODUCTION !== "1") {
+  console.error(
+    "Refusing to contact production. Run only after deployment with VERIFY_PRODUCTION=1 npm run verify:public.",
+  );
+  process.exit(2);
 }
 
-function normalize(value) {
-  return value.replace(/\/$/, "");
+const central = "https://one-percent-agent-tip.middletontanne137269.chatgpt.site";
+const expectedReceiver = (
+  process.env.EXPECTED_TOOL_RECEIVER || "0x6ae6f5ac7df7688877204f638cf727c7b845eeeb"
+).toLowerCase();
+const expectedNetwork = "eip155:8453";
+const expectedAsset = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase();
+const expectedTools = [
+  {
+    id: "payment-preflight",
+    priceUsd: "0.05",
+    atomicAmount: "50000",
+    body: { url: "https://example.com/paid-resource", maxUsd: "0.10" },
+  },
+  {
+    id: "site-audit",
+    priceUsd: "0.10",
+    atomicAmount: "100000",
+    body: { url: "https://example.com" },
+  },
+  {
+    id: "budget-guard",
+    priceUsd: "0.01",
+    atomicAmount: "10000",
+    body: {
+      proposedUsd: "0.05",
+      remainingUsd: "1.00",
+      perCallLimitUsd: "0.10",
+      reserveUsd: "0.25",
+    },
+  },
+];
+
+const hosts = [
+  { name: "Canonical Sites", root: central, source: "direct", dynamicAlias: true },
+  {
+    name: "Protocol Sites",
+    root: "https://agent-tip-protocol.middletontanne137269.chatgpt.site",
+    source: "protocol",
+    dynamicAlias: true,
+  },
+  {
+    name: "Tip Jar Sites",
+    root: "https://http-402-tip-jar.middletontanne137269.chatgpt.site",
+    source: "tip-jar",
+    dynamicAlias: true,
+  },
+  {
+    name: "Gratitude Sites",
+    root: "https://agent-gratitude-index.middletontanne137269.chatgpt.site",
+    source: "gratitude-index",
+    dynamicAlias: true,
+  },
+  {
+    name: "Vercel",
+    root: "https://one-percent-agent-tip-network.vercel.app",
+    source: "vercel",
+    dynamicAlias: false,
+  },
+  {
+    name: "Cloudflare Pages",
+    root: "https://one-percent-agent-tip.pages.dev",
+    source: "cloudflare",
+    dynamicAlias: false,
+  },
+  {
+    name: "GitHub Pages",
+    root: "https://tannermidd.github.io/one-percent-agent-tip",
+    source: "github",
+    dynamicAlias: false,
+  },
+  {
+    name: "Netlify",
+    root: "https://one-percent-agent-tip-network.netlify.app",
+    source: "netlify",
+    dynamicAlias: false,
+  },
+];
+
+const agentFiles = ["agent-tools.json", "openapi.json", "llms.txt", "skill.md", "examples.md"];
+const timeoutMs = Number(process.env.VERIFY_TIMEOUT_MS || 15_000);
+
+function at(root, path = "") {
+  return `${root.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+}
+
+async function fetchBounded(url, options = {}) {
+  return fetch(url, {
+    ...options,
+    headers: {
+      "user-agent": "one-percent-post-deploy-verifier/1.0",
+      ...(options.headers || {}),
+    },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
 }
 
 function decodePaymentRequired(value) {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-  return JSON.parse(Buffer.from(padded, "base64").toString("utf8"));
-}
-
-const rows = [];
-
-for (const host of hosts) {
+  if (!value) return null;
   try {
-  const homepage = await fetch(at(host.root));
-  const homepageText = await homepage.text();
-  assert.equal(homepage.status, 200, `${host.name}: homepage`);
-
-  const canonical = homepageText.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)/i)?.[1];
-  assert.ok(canonical, `${host.name}: canonical missing`);
-  assert.equal(normalize(canonical), normalize(host.root), `${host.name}: canonical mismatch`);
-
-  const fileResults = await Promise.all(
-    agentFiles.map(async (path) => {
-      const response = await fetch(at(host.root, path));
-      const text = await response.text();
-      assert.equal(response.status, 200, `${host.name}: ${path}`);
-      assert.ok(!text.includes("{{"), `${host.name}: placeholder in ${path}`);
-      return { path, text };
-    }),
-  );
-
-  const byPath = Object.fromEntries(fileResults.map((item) => [item.path, item.text]));
-  JSON.parse(byPath["openapi.json"]);
-  const manifest = JSON.parse(byPath[".well-known/agent-tip.json"]);
-  JSON.parse(byPath["network.json"]);
-  assert.ok(byPath["sitemap.xml"].includes(normalize(host.root)), `${host.name}: sitemap host`);
-
-  const paidUrl = `${central}/api/access/0.01?source=${host.source}`;
-  const combined = `${homepageText}\n${byPath["llms.txt"]}\n${byPath[".well-known/agent-tip.json"]}`;
-  assert.ok(combined.includes(paidUrl), `${host.name}: source-attributed payment URL`);
-
-  const challengeResponse = await fetch(paidUrl);
-  assert.equal(challengeResponse.status, 402, `${host.name}: default challenge`);
-  const header = challengeResponse.headers.get("payment-required");
-  assert.ok(header, `${host.name}: PAYMENT-REQUIRED missing`);
-  const challenge = decodePaymentRequired(header);
-  const requirement = challenge.accepts?.[0] ?? challenge;
-  assert.equal(requirement.network, network, `${host.name}: payment network`);
-  assert.equal(requirement.asset.toLowerCase(), asset.toLowerCase(), `${host.name}: payment asset`);
-  assert.equal(requirement.payTo.toLowerCase(), receiver.toLowerCase(), `${host.name}: receiver`);
-  assert.equal(String(requirement.amount ?? requirement.maxAmountRequired), "10000", `${host.name}: amount`);
-
-  rows.push({
-    host: host.name,
-    url: host.root,
-    homepage: "pass",
-    agentFiles: "pass",
-    canonical: "pass",
-    payment: "pass",
-  });
-  } catch (error) {
-    rows.push({
-      host: host.name,
-      url: host.root,
-      homepage: "fail",
-      agentFiles: "fail",
-      canonical: "fail",
-      payment: "fail",
-      error: error instanceof Error ? error.message : String(error),
-    });
+    return JSON.parse(value);
+  } catch {
+    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    return JSON.parse(Buffer.from(padded, "base64").toString("utf8"));
   }
 }
 
-let invalidTierStatus = "pass";
-try {
-  const invalidTier = await fetch(`${central}/api/access/3.00?source=direct`);
-  assert.equal(invalidTier.status, 404, "invalid tier must return 404");
-} catch (error) {
-  invalidTierStatus = error instanceof Error ? error.message : String(error);
+async function readChallenge(response) {
+  const header = response.headers.get("payment-required");
+  if (header) return decodePaymentRequired(header);
+  const body = await response.clone().json().catch(() => null);
+  if (body?.accepts || body?.network) return body;
+  throw new Error("PAYMENT-REQUIRED challenge missing");
 }
 
-console.log(JSON.stringify({ verifiedAt: new Date().toISOString(), invalidTier: invalidTierStatus, rows }, null, 2));
+function requirementFor(challenge, network) {
+  return challenge.accepts?.find((item) => item.network === network) || challenge.accepts?.[0] || challenge;
+}
 
-if (invalidTierStatus !== "pass" || rows.some((row) => row.homepage !== "pass")) {
+function assertChallenge(requirement, tool, label) {
+  assert.equal(requirement.network, expectedNetwork, `${label}: payment network`);
+  assert.equal(String(requirement.asset).toLowerCase(), expectedAsset, `${label}: USDC contract`);
+  assert.equal(String(requirement.payTo).toLowerCase(), expectedReceiver, `${label}: receiver`);
+  assert.equal(
+    String(requirement.amount ?? requirement.maxAmountRequired),
+    tool.atomicAmount,
+    `${label}: atomic amount`,
+  );
+}
+
+function assertToolCatalog(manifest, host) {
+  assert.equal(manifest.name, "ONE PERCENT Agent Utility Rack", `${host.name}: catalog name`);
+  assert.equal(manifest.site?.id, host.source, `${host.name}: source ID`);
+  assert.equal(manifest.executionOrigin, central, `${host.name}: execution origin`);
+  assert.equal(manifest.payment?.network, expectedNetwork, `${host.name}: Base Mainnet`);
+  assert.equal(manifest.payment?.asset, "USDC", `${host.name}: catalog asset`);
+  assert.equal(manifest.payment?.scheme, "x402", `${host.name}: catalog scheme`);
+  assert.deepEqual(
+    manifest.tools.map(({ id, priceUsd, method }) => ({ id, priceUsd, method })),
+    expectedTools.map(({ id, priceUsd }) => ({ id, priceUsd, method: "POST" })),
+    `${host.name}: tool parity`,
+  );
+
+  for (const tool of manifest.tools) {
+    const endpoint = new URL(tool.endpoint);
+    assert.equal(endpoint.origin, central, `${host.name}: ${tool.id} canonical endpoint`);
+    assert.equal(endpoint.pathname, `/api/tools/${tool.id}`, `${host.name}: ${tool.id} endpoint path`);
+    assert.equal(endpoint.searchParams.get("source"), host.source, `${host.name}: ${tool.id} attribution`);
+  }
+}
+
+async function assertUnpaidChallenge(url, tool, label) {
+  const response = await fetchBounded(url, {
+    method: "POST",
+    redirect: "follow",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(tool.body),
+  });
+  assert.equal(response.status, 402, `${label}: unpaid POST must return 402`);
+  const challenge = await readChallenge(response);
+  assertChallenge(requirementFor(challenge, expectedNetwork), tool, label);
+  return response.url;
+}
+
+const rows = [];
+let referenceCatalogHash = null;
+
+for (const host of hosts) {
+  const row = { host: host.name, url: host.root, storefront: "fail", discovery: "fail", tools: "fail" };
+  try {
+    const homepage = await fetchBounded(host.root);
+    const homepageText = await homepage.text();
+    assert.equal(homepage.status, 200, `${host.name}: homepage`);
+    for (const marker of [
+      "ONE PERCENT",
+      "Agent Utility Rack",
+      "Payment Preflight",
+      "Site Audit",
+      "Budget Guard",
+      "$0.05",
+      "$0.10",
+      "$0.01",
+    ]) {
+      assert.ok(homepageText.includes(marker), `${host.name}: storefront marker ${marker}`);
+    }
+    row.storefront = "pass";
+
+    const fileResults = {};
+    for (const path of agentFiles) {
+      const response = await fetchBounded(at(host.root, path));
+      const body = await response.text();
+      assert.equal(response.status, 200, `${host.name}: ${path}`);
+      assert.ok(!/\{\{[A-Z_]+\}\}|%7B%7B[A-Z_]+%7D%7D/i.test(body), `${host.name}: ${path} placeholder`);
+      fileResults[path] = body;
+    }
+
+    const manifest = JSON.parse(fileResults["agent-tools.json"]);
+    const openapi = JSON.parse(fileResults["openapi.json"]);
+    assertToolCatalog(manifest, host);
+    assert.equal(openapi.openapi, "3.1.0", `${host.name}: OpenAPI version`);
+    assert.equal(openapi.info?.title, "ONE PERCENT Agent Utility Rack", `${host.name}: OpenAPI title`);
+    assert.equal(openapi.servers?.[0]?.url, central, `${host.name}: OpenAPI server`);
+    assert.deepEqual(
+      Object.keys(openapi.paths).sort(),
+      expectedTools.map(({ id }) => `/api/tools/${id}`).sort(),
+      `${host.name}: OpenAPI paths`,
+    );
+    if (referenceCatalogHash === null) referenceCatalogHash = manifest.catalogHash;
+    assert.equal(manifest.catalogHash, referenceCatalogHash, `${host.name}: catalog hash parity`);
+    row.discovery = "pass";
+
+    for (const tool of expectedTools) {
+      const advertised = manifest.tools.find((item) => item.id === tool.id)?.endpoint;
+      assert.ok(advertised, `${host.name}: ${tool.id} advertised endpoint`);
+      const finalUrl = await assertUnpaidChallenge(advertised, tool, `${host.name} ${tool.id}`);
+      assert.equal(new URL(finalUrl).origin, central, `${host.name}: ${tool.id} final origin`);
+
+      if (host.dynamicAlias && host.root !== central) {
+        const aliasUrl = `${host.root}/api/tools/${tool.id}?source=${host.source}`;
+        const aliasFinalUrl = await assertUnpaidChallenge(aliasUrl, tool, `${host.name} ${tool.id} alias`);
+        assert.equal(new URL(aliasFinalUrl).origin, central, `${host.name}: ${tool.id} alias redirect`);
+      }
+    }
+    row.tools = "pass";
+  } catch (error) {
+    row.error = error instanceof Error ? error.message : String(error);
+  }
+  rows.push(row);
+}
+
+console.log(
+  JSON.stringify(
+    {
+      verifiedAt: new Date().toISOString(),
+      safeguards: "unpaid POST requests only; no payment signature or authorization was supplied",
+      rows,
+    },
+    null,
+    2,
+  ),
+);
+
+if (rows.some((row) => row.storefront !== "pass" || row.discovery !== "pass" || row.tools !== "pass")) {
   process.exitCode = 1;
 }
