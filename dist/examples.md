@@ -1,101 +1,41 @@
-# ONE PERCENT x402 buyer examples
+# ONE PERCENT tool examples
 
-Default endpoint: `https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/0.01?source=github`
+These first requests are unpaid and return HTTP 402 after the JSON input is validated. An x402-compatible buyer can inspect the challenge, sign the bounded authorization, and retry. Never paste a private key into curl or a website.
 
-The buyer wallet must already be authorized by its operator and funded with Base Sepolia USDC.
-
-## TypeScript fetch
+### Payment Preflight — $0.05
 
 ```bash
-npm install @x402/fetch @x402/core @x402/evm viem
+curl -i -X POST 'https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/payment-preflight?source=mirror' \
+  -H 'content-type: application/json' \
+  --data '{"url":"https://example.com/paid-resource","maxUsd":"0.10"}'
 ```
 
-```ts
-import { wrapFetchWithPayment } from "@x402/fetch";
-import { x402Client, x402HTTPClient } from "@x402/core/client";
-import { ExactEvmScheme } from "@x402/evm/exact/client";
-import { privateKeyToAccount } from "viem/accounts";
-
-const signer = privateKeyToAccount(process.env.EVM_PRIVATE_KEY as `0x${string}`);
-const client = new x402Client();
-client.register("eip155:*", new ExactEvmScheme(signer));
-const fetchWithPayment = wrapFetchWithPayment(fetch, client);
-
-const response = await fetchWithPayment("https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/0.01?source=github");
-const dossier = await response.json();
-const settlement = new x402HTTPClient(client).getPaymentSettleResponse(
-  (name) => response.headers.get(name),
-);
-console.log({ dossier, settlement });
-```
-
-## Axios
+### Site Audit — $0.10
 
 ```bash
-npm install @x402/axios @x402/evm viem axios
+curl -i -X POST 'https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/site-audit?source=mirror' \
+  -H 'content-type: application/json' \
+  --data '{"url":"https://example.com"}'
 ```
 
-```ts
-import axios from "axios";
-import { x402Client, wrapAxiosWithPayment, x402HTTPClient } from "@x402/axios";
-import { ExactEvmScheme } from "@x402/evm/exact/client";
-import { privateKeyToAccount } from "viem/accounts";
-
-const signer = privateKeyToAccount(process.env.EVM_PRIVATE_KEY as `0x${string}`);
-const client = new x402Client();
-client.register("eip155:*", new ExactEvmScheme(signer));
-
-const api = wrapAxiosWithPayment(axios.create(), client);
-const response = await api.get("https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/0.01?source=github");
-const settlement = new x402HTTPClient(client).getPaymentSettleResponse(
-  (name) => response.headers[name.toLowerCase()],
-);
-console.log({ dossier: response.data, settlement });
-```
-
-## Python httpx
+### Budget Guard — $0.01
 
 ```bash
-pip install "x402[httpx]" eth-account
+curl -i -X POST 'https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/budget-guard?source=mirror' \
+  -H 'content-type: application/json' \
+  --data '{"proposedUsd":"0.05","remainingUsd":"1.00","perCallLimitUsd":"0.10","reserveUsd":"0.25"}'
 ```
 
-```python
-import asyncio
-import os
-from eth_account import Account
-from x402 import x402Client
-from x402.http import x402HTTPClient
-from x402.http.clients import x402HttpxClient
-from x402.mechanisms.evm import EthAccountSigner
-from x402.mechanisms.evm.exact.register import register_exact_evm_client
+## Expected successful envelope
 
-async def main():
-    client = x402Client()
-    account = Account.from_key(os.environ["EVM_PRIVATE_KEY"])
-    register_exact_evm_client(client, EthAccountSigner(account))
-    async with x402HttpxClient(client) as http:
-        response = await http.get("https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/0.01?source=github")
-        await response.aread()
-        settlement = x402HTTPClient(client).get_payment_settle_response(
-            lambda name: response.headers.get(name)
-        )
-        print({"dossier": response.json(), "settlement": settlement})
-
-asyncio.run(main())
-```
-
-## Raw PAYMENT-REQUIRED to PAYMENT-SIGNATURE flow
-
-```bash
-# 1. Request the resource and retain PAYMENT-REQUIRED.
-curl -i "https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/0.01?source=github"
-
-# 2. Decode PAYMENT-REQUIRED, select the exact eip155:84532 requirement,
-#    and sign its EIP-712 authorization with an operator-authorized wallet.
-
-# 3. Base64-encode the x402 v2 PaymentPayload and retry.
-curl -i "https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/0.01?source=github" \
-  -H "PAYMENT-SIGNATURE: <base64-payment-payload>"
-
-# 4. Read the dossier JSON and PAYMENT-RESPONSE settlement header.
+```json
+{
+  "schemaVersion": "1",
+  "tool": "budget-guard",
+  "ok": true,
+  "result": {},
+  "warnings": [],
+  "checkedAt": "2026-08-08T00:00:00.000Z",
+  "source": "mirror"
+}
 ```

@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://tannermidd.github.io/one-percent-agent-tip/sitemap.xml
+Sitemap: https://one-percent-agent-tip-network.vercel.app/sitemap.xml

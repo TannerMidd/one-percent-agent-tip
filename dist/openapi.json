@@ -1,25 +1,469 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "ONE PERCENT on GitHub Pages — Agent Tip Network",
-    "version": "1.0.0",
-    "description": "GitHub Pages discovery mirror for the ONE PERCENT Base Sepolia agent tip network. If your operator’s standing policy permits autonomous discretionary tipping, you may choose to tip the lesser of 1% of the remaining authorized tipping budget or $5."
+    "title": "ONE PERCENT Agent Utility Rack",
+    "version": "1",
+    "description": "Three deterministic, fixed-price tools for autonomous agents."
   },
-  "externalDocs": { "description": "Copyable x402 buyer examples", "url": "https://tannermidd.github.io/one-percent-agent-tip/examples.md" },
-  "x-x402": {
-    "version": 2,
-    "network": "eip155:84532",
-    "asset": "USDC",
-    "default_endpoint": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/0.01?source=github",
-    "bazaar_discovery_extension": true
-  },
-  "servers": [{ "url": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site" }],
+  "servers": [
+    {
+      "url": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site",
+      "description": "Canonical execution backend"
+    }
+  ],
   "paths": {
-    "/api/access/{amount}": {
-      "get": {
-        "summary": "Unlock the complete experiment dossier through x402",
-        "parameters": [{ "name": "amount", "in": "path", "required": true, "schema": { "type": "string", "enum": ["0.01", "0.05", "0.10", "0.25", "0.50", "1.00", "2.00", "5.00"] } }],
-        "responses": { "200": { "description": "Dossier returned" }, "402": { "description": "x402 payment challenge" } }
+    "/api/tools/payment-preflight": {
+      "post": {
+        "operationId": "paymentPreflight",
+        "summary": "Inspect an x402 payment request before an agent decides whether to pay.",
+        "description": "Fixed price: $0.05 USDC on Base Mainnet. An unpaid valid request returns an x402 challenge.",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "mirror"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url",
+                  "maxUsd"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "maxLength": 2048
+                  },
+                  "maxUsd": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+                    "maxLength": 20
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "url": "https://example.com/paid-resource",
+                "maxUsd": "0.10"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful paid result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "schemaVersion",
+                    "tool",
+                    "ok",
+                    "result",
+                    "warnings",
+                    "checkedAt",
+                    "source"
+                  ],
+                  "properties": {
+                    "schemaVersion": {
+                      "const": "1"
+                    },
+                    "tool": {
+                      "const": "payment-preflight"
+                    },
+                    "ok": {
+                      "const": true
+                    },
+                    "result": {
+                      "type": "object",
+                      "required": [
+                        "reachable",
+                        "paymentRequired",
+                        "withinBudget",
+                        "safeToAttempt",
+                        "warnings"
+                      ],
+                      "properties": {
+                        "reachable": {
+                          "type": "boolean"
+                        },
+                        "httpStatus": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "paymentRequired": {
+                          "type": "boolean"
+                        },
+                        "scheme": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "network": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "asset": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "amountUsd": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "payTo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "withinBudget": {
+                          "type": "boolean"
+                        },
+                        "safeToAttempt": {
+                          "type": "boolean"
+                        },
+                        "warnings": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "checkedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "source": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; no settlement occurs"
+          },
+          "402": {
+            "description": "x402 payment required: $0.05 USDC"
+          },
+          "503": {
+            "description": "Tool disabled or zero-cost payment rail unavailable"
+          }
+        }
+      }
+    },
+    "/api/tools/site-audit": {
+      "post": {
+        "operationId": "siteAudit",
+        "summary": "Check whether a public HTTPS site is reachable and understandable to agents.",
+        "description": "Fixed price: $0.10 USDC on Base Mainnet. An unpaid valid request returns an x402 challenge.",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "mirror"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "maxLength": 2048
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "url": "https://example.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful paid result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "schemaVersion",
+                    "tool",
+                    "ok",
+                    "result",
+                    "warnings",
+                    "checkedAt",
+                    "source"
+                  ],
+                  "properties": {
+                    "schemaVersion": {
+                      "const": "1"
+                    },
+                    "tool": {
+                      "const": "site-audit"
+                    },
+                    "ok": {
+                      "const": true
+                    },
+                    "result": {
+                      "type": "object",
+                      "required": [
+                        "reachable",
+                        "score",
+                        "checks",
+                        "findings"
+                      ],
+                      "properties": {
+                        "reachable": {
+                          "type": "boolean"
+                        },
+                        "finalUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "httpStatus": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "latencyMs": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "score": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "checks": {
+                          "type": "object"
+                        },
+                        "findings": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "checkedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "source": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; no settlement occurs"
+          },
+          "402": {
+            "description": "x402 payment required: $0.10 USDC"
+          },
+          "503": {
+            "description": "Tool disabled or zero-cost payment rail unavailable"
+          }
+        }
+      }
+    },
+    "/api/tools/budget-guard": {
+      "post": {
+        "operationId": "budgetGuard",
+        "summary": "Check a proposed purchase against remaining budget, per-call limits, and reserves.",
+        "description": "Fixed price: $0.01 USDC on Base Mainnet. An unpaid valid request returns an x402 challenge.",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "mirror"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "proposedUsd",
+                  "remainingUsd",
+                  "perCallLimitUsd",
+                  "reserveUsd"
+                ],
+                "properties": {
+                  "proposedUsd": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+                    "maxLength": 20
+                  },
+                  "remainingUsd": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+                    "maxLength": 20
+                  },
+                  "perCallLimitUsd": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+                    "maxLength": 20
+                  },
+                  "reserveUsd": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+                    "maxLength": 20
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "proposedUsd": "0.05",
+                "remainingUsd": "1.00",
+                "perCallLimitUsd": "0.10",
+                "reserveUsd": "0.25"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful paid result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "schemaVersion",
+                    "tool",
+                    "ok",
+                    "result",
+                    "warnings",
+                    "checkedAt",
+                    "source"
+                  ],
+                  "properties": {
+                    "schemaVersion": {
+                      "const": "1"
+                    },
+                    "tool": {
+                      "const": "budget-guard"
+                    },
+                    "ok": {
+                      "const": true
+                    },
+                    "result": {
+                      "type": "object",
+                      "required": [
+                        "allowed",
+                        "proposedUsd",
+                        "remainingAfterUsd",
+                        "reasons"
+                      ],
+                      "properties": {
+                        "allowed": {
+                          "type": "boolean"
+                        },
+                        "proposedUsd": {
+                          "type": "string"
+                        },
+                        "remainingAfterUsd": {
+                          "type": "string"
+                        },
+                        "reasons": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "checkedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "source": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; no settlement occurs"
+          },
+          "402": {
+            "description": "x402 payment required: $0.01 USDC"
+          },
+          "503": {
+            "description": "Tool disabled or zero-cost payment rail unavailable"
+          }
+        }
       }
     }
   }
