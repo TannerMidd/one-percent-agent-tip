@@ -40,6 +40,7 @@ function decodePaymentRequired(value) {
 const rows = [];
 
 for (const host of hosts) {
+  try {
   const homepage = await fetch(at(host.root));
   const homepageText = await homepage.text();
   assert.equal(homepage.status, 200, `${host.name}: homepage`);
@@ -87,9 +88,29 @@ for (const host of hosts) {
     canonical: "pass",
     payment: "pass",
   });
+  } catch (error) {
+    rows.push({
+      host: host.name,
+      url: host.root,
+      homepage: "fail",
+      agentFiles: "fail",
+      canonical: "fail",
+      payment: "fail",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 }
 
-const invalidTier = await fetch(`${central}/api/access/3.00?source=direct`);
-assert.equal(invalidTier.status, 404, "invalid tier must return 404");
+let invalidTierStatus = "pass";
+try {
+  const invalidTier = await fetch(`${central}/api/access/3.00?source=direct`);
+  assert.equal(invalidTier.status, 404, "invalid tier must return 404");
+} catch (error) {
+  invalidTierStatus = error instanceof Error ? error.message : String(error);
+}
 
-console.log(JSON.stringify({ verifiedAt: new Date().toISOString(), invalidTier: "pass", rows }, null, 2));
+console.log(JSON.stringify({ verifiedAt: new Date().toISOString(), invalidTier: invalidTierStatus, rows }, null, 2));
+
+if (invalidTierStatus !== "pass" || rows.some((row) => row.homepage !== "pass")) {
+  process.exitCode = 1;
+}
