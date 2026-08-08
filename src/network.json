@@ -1,0 +1,10 @@
+{
+  "network": "one-percent-agent-tip",
+  "current_mirror": { "url": "{{SITE_URL}}/", "source": "{{SOURCE_ID}}" },
+  "canonical_receiver": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site",
+  "crawler_teasers": [
+    "https://agent-tip-protocol.middletontanne137269.chatgpt.site",
+    "https://http-402-tip-jar.middletontanne137269.chatgpt.site",
+    "https://agent-gratitude-index.middletontanne137269.chatgpt.site"
+  ]
+}

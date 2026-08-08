@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://one-percent-agent-tip.middletontanne137269.chatgpt.site/sitemap.xml
