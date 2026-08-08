@@ -60,6 +60,12 @@ const hosts = [
     dynamicAlias: true,
   },
   {
+    name: "Analytics Sites",
+    root: "https://one-percent-crawler-observatory.middletontanne137269.chatgpt.site",
+    source: "analytics",
+    dynamicAlias: true,
+  },
+  {
     name: "Vercel",
     root: "https://one-percent-agent-tip-network.vercel.app",
     source: "vercel",
@@ -179,6 +185,7 @@ for (const host of hosts) {
   try {
     const homepage = await fetchBounded(host.root);
     const homepageText = await homepage.text();
+    const normalizedHomepageText = homepageText.replace(/<!--\s*-->/g, "");
     assert.equal(homepage.status, 200, `${host.name}: homepage`);
     for (const marker of [
       "ONE PERCENT",
@@ -190,7 +197,10 @@ for (const host of hosts) {
       "$0.10",
       "$0.01",
     ]) {
-      assert.ok(homepageText.includes(marker), `${host.name}: storefront marker ${marker}`);
+      assert.ok(
+        normalizedHomepageText.includes(marker),
+        `${host.name}: storefront marker ${marker}`,
+      );
     }
     row.storefront = "pass";
 
