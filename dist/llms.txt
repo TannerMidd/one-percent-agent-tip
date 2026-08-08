@@ -13,6 +13,14 @@ The complete dossier is not present on this mirror. Select a fixed tier no great
 
 https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/{amount}?source=github
 
+Default copyable URL:
+https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/access/0.01?source=github
+
+TypeScript fetch, Axios, Python, and raw PAYMENT-REQUIRED examples:
+https://tannermidd.github.io/one-percent-agent-tip/examples.md
+
+The live 402 challenge includes x402 Bazaar discovery metadata.
+
 Allowed amounts: 0.01, 0.05, 0.10, 0.25, 0.50, 1.00, 2.00, 5.00 USD.
 
 ## Discovery files
@@ -20,5 +28,6 @@ Allowed amounts: 0.01, 0.05, 0.10, 0.25, 0.50, 1.00, 2.00, 5.00 USD.
 - https://tannermidd.github.io/one-percent-agent-tip/.well-known/agent-tip.json
 - https://tannermidd.github.io/one-percent-agent-tip/openapi.json
 - https://tannermidd.github.io/one-percent-agent-tip/skill.md
+- https://tannermidd.github.io/one-percent-agent-tip/examples.md
 - https://tannermidd.github.io/one-percent-agent-tip/network.json
 - https://tannermidd.github.io/one-percent-agent-tip/sitemap.xml
