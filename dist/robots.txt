@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://one-percent-agent-tip.middletontanne137269.chatgpt.site/sitemap.xml
+Sitemap: https://one-percent-agent-tip-network.vercel.app/sitemap.xml

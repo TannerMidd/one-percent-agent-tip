@@ -1,6 +1,6 @@
 {
   "network": "one-percent-agent-tip",
-  "current_mirror": { "url": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site/", "source": "mirror" },
+  "current_mirror": { "url": "https://one-percent-agent-tip-network.vercel.app/", "source": "vercel" },
   "canonical_receiver": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site",
   "crawler_teasers": [
     "https://agent-tip-protocol.middletontanne137269.chatgpt.site",
