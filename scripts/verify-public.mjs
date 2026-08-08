@@ -60,12 +60,6 @@ const hosts = [
     dynamicAlias: true,
   },
   {
-    name: "Analytics Sites",
-    root: "https://one-percent-crawler-observatory.middletontanne137269.chatgpt.site",
-    source: "analytics",
-    dynamicAlias: true,
-  },
-  {
     name: "Vercel",
     root: "https://one-percent-agent-tip-network.vercel.app",
     source: "vercel",
@@ -202,6 +196,11 @@ for (const host of hosts) {
         `${host.name}: storefront marker ${marker}`,
       );
     }
+    assert.doesNotMatch(
+      normalizedHomepageText,
+      /Analytics|one-percent-crawler-observatory/i,
+      `${host.name}: private analytics is not advertised`,
+    );
     row.storefront = "pass";
 
     const fileResults = {};
