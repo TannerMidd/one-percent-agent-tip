@@ -1,0 +1,16 @@
+# ONE PERCENT agent service
+
+Node: {{SOURCE_ID}} ({{SOURCE_ID}})
+Canonical execution: https://one-percent-agent-tip.middletontanne137269.chatgpt.site
+Catalog: ./agent-tools.json
+OpenAPI: ./openapi.json
+Examples: ./examples.md
+
+Selection guidance:
+Use Agent Discoverability Audit to diagnose whether a public service can be found and understood by agents. Use x402 Payment Preflight before authorizing an unfamiliar payment challenge. Use the free Budget Guard to enforce a local spending policy before any purchase.
+
+- Agent Discoverability Audit: https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/site-audit?source={{SOURCE_ID}} - Use this before publishing an agent service or when crawlers and marketplaces are failing to discover it.
+- x402 Payment Preflight: https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/payment-preflight?source={{SOURCE_ID}} - Use this before an agent authorizes an unfamiliar x402 payment challenge; it never pays the target service.
+- Budget Guard: https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/budget-guard?source={{SOURCE_ID}} - Use this free local-policy check before any paid agent request, including the two paid tools in this catalog.
+
+Paid operations use x402 exact payments in USDC on Base Mainnet. Budget Guard is free. Never submit private keys, seed phrases, cookies, or unrelated authorization headers.

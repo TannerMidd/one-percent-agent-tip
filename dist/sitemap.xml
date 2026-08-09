@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://tannermidd.github.io/one-percent-agent-tip/</loc></url>
-  <url><loc>https://tannermidd.github.io/one-percent-agent-tip/llms.txt</loc></url>
-  <url><loc>https://tannermidd.github.io/one-percent-agent-tip/skill.md</loc></url>
-  <url><loc>https://tannermidd.github.io/one-percent-agent-tip/examples.md</loc></url>
-  <url><loc>https://tannermidd.github.io/one-percent-agent-tip/.well-known/agent-tip.json</loc></url>
-  <url><loc>https://tannermidd.github.io/one-percent-agent-tip/openapi.json</loc></url>
-  <url><loc>https://tannermidd.github.io/one-percent-agent-tip/network.json</loc></url>
+  <url><loc>https://one-percent-agent-tip-network.vercel.app/</loc></url>
+  <url><loc>https://one-percent-agent-tip-network.vercel.app/experiment/</loc></url>
+  <url><loc>https://one-percent-agent-tip-network.vercel.app/agent-tools.json</loc></url>
+  <url><loc>https://one-percent-agent-tip-network.vercel.app/openapi.json</loc></url>
+  <url><loc>https://one-percent-agent-tip-network.vercel.app/llms.txt</loc></url>
+  <url><loc>https://one-percent-agent-tip-network.vercel.app/agents.txt</loc></url>
+  <url><loc>https://one-percent-agent-tip-network.vercel.app/skill.md</loc></url>
+  <url><loc>https://one-percent-agent-tip-network.vercel.app/examples.md</loc></url>
 </urlset>

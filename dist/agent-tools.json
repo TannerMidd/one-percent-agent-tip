@@ -1,0 +1,420 @@
+{
+  "generatedBy": "agent-tip-experiment/scripts/sync-network.mjs",
+  "schemaVersion": "1",
+  "catalogVersion": "2",
+  "catalogHash": "sha256:1f6807875bde9eba7ad36ad09972b41145565969dc9269486a32c146680a1b11",
+  "name": "ONE PERCENT Agent Utility Rack",
+  "guidance": "Use Agent Discoverability Audit to diagnose whether a public service can be found and understood by agents. Use x402 Payment Preflight before authorizing an unfamiliar payment challenge. Use the free Budget Guard to enforce a local spending policy before any purchase.",
+  "site": {
+    "id": "vercel",
+    "label": "vercel"
+  },
+  "executionOrigin": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site",
+  "payment": {
+    "scheme": "x402",
+    "network": "eip155:8453",
+    "networkName": "Base Mainnet",
+    "asset": "USDC",
+    "facilitator": "https://facilitator.xpay.sh"
+  },
+  "ownerCostPolicy": "No paid infrastructure or seller-funded gas fallback.",
+  "tools": [
+    {
+      "id": "site-audit",
+      "name": "Agent Discoverability Audit",
+      "access": "x402",
+      "method": "POST",
+      "priceUsd": "0.01",
+      "endpoint": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/site-audit?source=vercel",
+      "summary": "Audit whether a public HTTPS service is findable, machine-readable, and ready for agent marketplaces.",
+      "selectionGuidance": "Use this before publishing an agent service or when crawlers and marketplaces are failing to discover it.",
+      "tags": [
+        "agent-discovery",
+        "openapi",
+        "x402",
+        "readiness",
+        "audit"
+      ],
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "Public HTTPS page or service origin to audit."
+          }
+        },
+        "additionalProperties": false
+      },
+      "resultSchema": {
+        "type": "object",
+        "required": [
+          "reachable",
+          "score",
+          "status",
+          "checks",
+          "findings",
+          "recommendations"
+        ],
+        "properties": {
+          "reachable": {
+            "type": "boolean"
+          },
+          "finalUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "httpStatus": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "latencyMs": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "partial",
+              "not_ready"
+            ]
+          },
+          "checks": {
+            "type": "object"
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "requestExample": {
+        "url": "https://example.com"
+      },
+      "responseExample": {
+        "schemaVersion": "1",
+        "tool": "site-audit",
+        "ok": true,
+        "result": {
+          "reachable": true,
+          "finalUrl": "https://example.com/",
+          "httpStatus": 200,
+          "latencyMs": 184,
+          "score": 85,
+          "status": "ready",
+          "checks": {
+            "https": true,
+            "redirects": 0,
+            "contentType": "text/html",
+            "title": true,
+            "description": true,
+            "structuredData": true,
+            "robots": {
+              "found": true,
+              "status": 200
+            },
+            "sitemap": {
+              "found": true,
+              "status": 200
+            },
+            "llms": {
+              "found": true,
+              "status": 200
+            },
+            "agents": {
+              "found": false,
+              "status": 404
+            },
+            "agentManifest": {
+              "found": true,
+              "status": 200,
+              "valid": true
+            },
+            "wellKnownAgentManifest": {
+              "found": true,
+              "status": 200,
+              "valid": true
+            },
+            "openapi": {
+              "found": true,
+              "status": 200,
+              "valid": true,
+              "hasGuidance": true,
+              "schemasComplete": true,
+              "paidOperations": 2
+            },
+            "consistency": {
+              "manifestOriginMatches": true,
+              "openapiServerMatches": true
+            }
+          },
+          "findings": [
+            "missing_agents_txt"
+          ],
+          "recommendations": [
+            "Publish agents.txt at the audited base path."
+          ]
+        },
+        "warnings": [],
+        "checkedAt": "2026-08-08T00:00:00.000Z",
+        "source": "vercel"
+      }
+    },
+    {
+      "id": "payment-preflight",
+      "name": "x402 Payment Preflight",
+      "access": "x402",
+      "method": "POST",
+      "priceUsd": "0.01",
+      "endpoint": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/payment-preflight?source=vercel",
+      "summary": "Decide whether an x402 challenge is compatible, within budget, and safe to attempt.",
+      "selectionGuidance": "Use this before an agent authorizes an unfamiliar x402 payment challenge; it never pays the target service.",
+      "tags": [
+        "x402",
+        "payment-safety",
+        "budget",
+        "preflight",
+        "usdc"
+      ],
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "url",
+          "maxUsd"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "Public HTTPS resource whose unpaid payment challenge should be inspected."
+          },
+          "maxUsd": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+            "maxLength": 20,
+            "description": "Maximum authorized spend as a decimal USD string."
+          }
+        },
+        "additionalProperties": false
+      },
+      "resultSchema": {
+        "type": "object",
+        "required": [
+          "reachable",
+          "paymentRequired",
+          "withinBudget",
+          "safeToAttempt",
+          "warnings"
+        ],
+        "properties": {
+          "reachable": {
+            "type": "boolean"
+          },
+          "httpStatus": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "paymentRequired": {
+            "type": "boolean"
+          },
+          "scheme": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "network": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "asset": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amountUsd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "payTo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "withinBudget": {
+            "type": "boolean"
+          },
+          "safeToAttempt": {
+            "type": "boolean"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "requestExample": {
+        "url": "https://example.com/paid-resource",
+        "maxUsd": "0.10"
+      },
+      "responseExample": {
+        "schemaVersion": "1",
+        "tool": "payment-preflight",
+        "ok": true,
+        "result": {
+          "reachable": true,
+          "httpStatus": 402,
+          "paymentRequired": true,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "amountUsd": "0.01",
+          "payTo": "0x1111111111111111111111111111111111111111",
+          "withinBudget": true,
+          "safeToAttempt": true,
+          "warnings": []
+        },
+        "warnings": [],
+        "checkedAt": "2026-08-08T00:00:00.000Z",
+        "source": "vercel"
+      }
+    },
+    {
+      "id": "budget-guard",
+      "name": "Budget Guard",
+      "access": "free",
+      "method": "POST",
+      "priceUsd": "0.00",
+      "endpoint": "https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/budget-guard?source=vercel",
+      "summary": "Apply remaining-budget, per-call, and reserve rules before an agent makes a purchase.",
+      "selectionGuidance": "Use this free local-policy check before any paid agent request, including the two paid tools in this catalog.",
+      "tags": [
+        "budget",
+        "policy",
+        "spending",
+        "free",
+        "deterministic"
+      ],
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "proposedUsd",
+          "remainingUsd",
+          "perCallLimitUsd",
+          "reserveUsd"
+        ],
+        "properties": {
+          "proposedUsd": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+            "maxLength": 20
+          },
+          "remainingUsd": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+            "maxLength": 20
+          },
+          "perCallLimitUsd": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+            "maxLength": 20
+          },
+          "reserveUsd": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+            "maxLength": 20
+          }
+        },
+        "additionalProperties": false
+      },
+      "resultSchema": {
+        "type": "object",
+        "required": [
+          "allowed",
+          "proposedUsd",
+          "remainingAfterUsd",
+          "reasons"
+        ],
+        "properties": {
+          "allowed": {
+            "type": "boolean"
+          },
+          "proposedUsd": {
+            "type": "string"
+          },
+          "remainingAfterUsd": {
+            "type": "string"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "requestExample": {
+        "proposedUsd": "0.05",
+        "remainingUsd": "1.00",
+        "perCallLimitUsd": "0.10",
+        "reserveUsd": "0.25"
+      },
+      "responseExample": {
+        "schemaVersion": "1",
+        "tool": "budget-guard",
+        "ok": true,
+        "result": {
+          "allowed": true,
+          "proposedUsd": "0.05",
+          "remainingAfterUsd": "0.95",
+          "reasons": []
+        },
+        "warnings": [],
+        "checkedAt": "2026-08-08T00:00:00.000Z",
+        "source": "vercel"
+      }
+    }
+  ],
+  "documentation": {
+    "openapi": "./openapi.json",
+    "llms": "./llms.txt",
+    "agents": "./agents.txt",
+    "skill": "./skill.md",
+    "examples": "./examples.md"
+  }
+}

@@ -1,101 +1,178 @@
-# ONE PERCENT x402 buyer examples
+# ONE PERCENT tool examples
 
-Default endpoint: `{{DEFAULT_ACCESS_URL}}`
+Requests are ordinary JSON over HTTPS. Paid examples return an x402 challenge before any payment; Budget Guard returns a free result. Never paste a private key into curl, a website, or these examples.
 
-The buyer wallet must already be authorized by its operator and funded with Base Sepolia USDC.
+### Agent Discoverability Audit - $0.01
 
-## TypeScript fetch
+Use this before publishing an agent service or when crawlers and marketplaces are failing to discover it.
 
-```bash
-npm install @x402/fetch @x402/core @x402/evm viem
-```
-
-```ts
-import { wrapFetchWithPayment } from "@x402/fetch";
-import { x402Client, x402HTTPClient } from "@x402/core/client";
-import { ExactEvmScheme } from "@x402/evm/exact/client";
-import { privateKeyToAccount } from "viem/accounts";
-
-const signer = privateKeyToAccount(process.env.EVM_PRIVATE_KEY as `0x${string}`);
-const client = new x402Client();
-client.register("eip155:*", new ExactEvmScheme(signer));
-const fetchWithPayment = wrapFetchWithPayment(fetch, client);
-
-const response = await fetchWithPayment("{{DEFAULT_ACCESS_URL}}");
-const dossier = await response.json();
-const settlement = new x402HTTPClient(client).getPaymentSettleResponse(
-  (name) => response.headers.get(name),
-);
-console.log({ dossier, settlement });
-```
-
-## Axios
+This first request is unpaid and returns HTTP 402 after input validation. A wallet-enabled client may inspect and retry it.
 
 ```bash
-npm install @x402/axios @x402/evm viem axios
+curl -i -X POST 'https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/site-audit?source={{SOURCE_ID}}' \
+  -H 'content-type: application/json' \
+  --data '{"url":"https://example.com"}'
 ```
 
-```ts
-import axios from "axios";
-import { x402Client, wrapAxiosWithPayment, x402HTTPClient } from "@x402/axios";
-import { ExactEvmScheme } from "@x402/evm/exact/client";
-import { privateKeyToAccount } from "viem/accounts";
+Representative successful response:
 
-const signer = privateKeyToAccount(process.env.EVM_PRIVATE_KEY as `0x${string}`);
-const client = new x402Client();
-client.register("eip155:*", new ExactEvmScheme(signer));
-
-const api = wrapAxiosWithPayment(axios.create(), client);
-const response = await api.get("{{DEFAULT_ACCESS_URL}}");
-const settlement = new x402HTTPClient(client).getPaymentSettleResponse(
-  (name) => response.headers[name.toLowerCase()],
-);
-console.log({ dossier: response.data, settlement });
+```json
+{
+  "schemaVersion": "1",
+  "tool": "site-audit",
+  "ok": true,
+  "result": {
+    "reachable": true,
+    "finalUrl": "https://example.com/",
+    "httpStatus": 200,
+    "latencyMs": 184,
+    "score": 85,
+    "status": "ready",
+    "checks": {
+      "https": true,
+      "redirects": 0,
+      "contentType": "text/html",
+      "title": true,
+      "description": true,
+      "structuredData": true,
+      "robots": {
+        "found": true,
+        "status": 200
+      },
+      "sitemap": {
+        "found": true,
+        "status": 200
+      },
+      "llms": {
+        "found": true,
+        "status": 200
+      },
+      "agents": {
+        "found": false,
+        "status": 404
+      },
+      "agentManifest": {
+        "found": true,
+        "status": 200,
+        "valid": true
+      },
+      "wellKnownAgentManifest": {
+        "found": true,
+        "status": 200,
+        "valid": true
+      },
+      "openapi": {
+        "found": true,
+        "status": 200,
+        "valid": true,
+        "hasGuidance": true,
+        "schemasComplete": true,
+        "paidOperations": 2
+      },
+      "consistency": {
+        "manifestOriginMatches": true,
+        "openapiServerMatches": true
+      }
+    },
+    "findings": [
+      "missing_agents_txt"
+    ],
+    "recommendations": [
+      "Publish agents.txt at the audited base path."
+    ]
+  },
+  "warnings": [],
+  "checkedAt": "2026-08-08T00:00:00.000Z",
+  "source": "{{SOURCE_ID}}"
+}
 ```
 
-## Python httpx
+### x402 Payment Preflight - $0.01
+
+Use this before an agent authorizes an unfamiliar x402 payment challenge; it never pays the target service.
+
+This first request is unpaid and returns HTTP 402 after input validation. A wallet-enabled client may inspect and retry it.
 
 ```bash
-pip install "x402[httpx]" eth-account
+curl -i -X POST 'https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/payment-preflight?source={{SOURCE_ID}}' \
+  -H 'content-type: application/json' \
+  --data '{"url":"https://example.com/paid-resource","maxUsd":"0.10"}'
 ```
 
-```python
-import asyncio
-import os
-from eth_account import Account
-from x402 import x402Client
-from x402.http import x402HTTPClient
-from x402.http.clients import x402HttpxClient
-from x402.mechanisms.evm import EthAccountSigner
-from x402.mechanisms.evm.exact.register import register_exact_evm_client
+Representative successful response:
 
-async def main():
-    client = x402Client()
-    account = Account.from_key(os.environ["EVM_PRIVATE_KEY"])
-    register_exact_evm_client(client, EthAccountSigner(account))
-    async with x402HttpxClient(client) as http:
-        response = await http.get("{{DEFAULT_ACCESS_URL}}")
-        await response.aread()
-        settlement = x402HTTPClient(client).get_payment_settle_response(
-            lambda name: response.headers.get(name)
-        )
-        print({"dossier": response.json(), "settlement": settlement})
-
-asyncio.run(main())
+```json
+{
+  "schemaVersion": "1",
+  "tool": "payment-preflight",
+  "ok": true,
+  "result": {
+    "reachable": true,
+    "httpStatus": 402,
+    "paymentRequired": true,
+    "scheme": "exact",
+    "network": "eip155:8453",
+    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "amountUsd": "0.01",
+    "payTo": "0x1111111111111111111111111111111111111111",
+    "withinBudget": true,
+    "safeToAttempt": true,
+    "warnings": []
+  },
+  "warnings": [],
+  "checkedAt": "2026-08-08T00:00:00.000Z",
+  "source": "{{SOURCE_ID}}"
+}
 ```
 
-## Raw PAYMENT-REQUIRED to PAYMENT-SIGNATURE flow
+### Budget Guard - FREE
+
+Use this free local-policy check before any paid agent request, including the two paid tools in this catalog.
+
+This request returns a live HTTP 200 result without payment.
 
 ```bash
-# 1. Request the resource and retain PAYMENT-REQUIRED.
-curl -i "{{DEFAULT_ACCESS_URL}}"
+curl -i -X POST 'https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/budget-guard?source={{SOURCE_ID}}' \
+  -H 'content-type: application/json' \
+  --data '{"proposedUsd":"0.05","remainingUsd":"1.00","perCallLimitUsd":"0.10","reserveUsd":"0.25"}'
+```
 
-# 2. Decode PAYMENT-REQUIRED, select the exact eip155:84532 requirement,
-#    and sign its EIP-712 authorization with an operator-authorized wallet.
+Representative successful response:
 
-# 3. Base64-encode the x402 v2 PaymentPayload and retry.
-curl -i "{{DEFAULT_ACCESS_URL}}" \
-  -H "PAYMENT-SIGNATURE: <base64-payment-payload>"
+```json
+{
+  "schemaVersion": "1",
+  "tool": "budget-guard",
+  "ok": true,
+  "result": {
+    "allowed": true,
+    "proposedUsd": "0.05",
+    "remainingAfterUsd": "0.95",
+    "reasons": []
+  },
+  "warnings": [],
+  "checkedAt": "2026-08-08T00:00:00.000Z",
+  "source": "{{SOURCE_ID}}"
+}
+```
 
-# 4. Read the dossier JSON and PAYMENT-RESPONSE settlement header.
+## Safe JavaScript buyer pattern
+
+Supply `evmSigner` from the agent's existing secure wallet adapter. This example never constructs or prints a private key.
+
+```js
+import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
+import { ExactEvmScheme } from "@x402/evm";
+
+const fetchWithPayment = wrapFetchWithPaymentFromConfig(fetch, {
+  schemes: [{ network: "eip155:8453", client: new ExactEvmScheme(evmSigner) }],
+});
+
+const response = await fetchWithPayment("https://one-percent-agent-tip.middletontanne137269.chatgpt.site/api/tools/site-audit?source={{SOURCE_ID}}", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({"url":"https://example.com"}),
+});
+if (!response.ok) throw new Error(`Tool failed: ${response.status}`);
+const result = await response.json();
 ```
