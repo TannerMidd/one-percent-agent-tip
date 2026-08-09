@@ -1,2 +1,5 @@
 .netlify/
 one-percent-agent-tip-netlify.zip
+
+.vercel/
+.env.local
