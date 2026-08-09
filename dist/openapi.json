@@ -62,7 +62,11 @@
                     "type": "string",
                     "format": "uri",
                     "maxLength": 2048,
-                    "description": "Public HTTPS page or service origin to audit."
+                    "description": "Public HTTPS page or service origin to audit.",
+                    "example": "https://example.com",
+                    "examples": [
+                      "https://example.com"
+                    ]
                   }
                 },
                 "additionalProperties": false
@@ -309,13 +313,21 @@
                     "type": "string",
                     "format": "uri",
                     "maxLength": 2048,
-                    "description": "Public HTTPS resource whose unpaid payment challenge should be inspected."
+                    "description": "Public HTTPS resource whose unpaid payment challenge should be inspected.",
+                    "example": "https://example.com/paid-resource",
+                    "examples": [
+                      "https://example.com/paid-resource"
+                    ]
                   },
                   "maxUsd": {
                     "type": "string",
                     "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
                     "maxLength": 20,
-                    "description": "Maximum authorized spend as a decimal USD string."
+                    "description": "Maximum authorized spend as a decimal USD string.",
+                    "example": "0.10",
+                    "examples": [
+                      "0.10"
+                    ]
                   }
                 },
                 "additionalProperties": false
@@ -509,22 +521,38 @@
                   "proposedUsd": {
                     "type": "string",
                     "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "example": "0.05",
+                    "examples": [
+                      "0.05"
+                    ]
                   },
                   "remainingUsd": {
                     "type": "string",
                     "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "example": "1.00",
+                    "examples": [
+                      "1.00"
+                    ]
                   },
                   "perCallLimitUsd": {
                     "type": "string",
                     "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "example": "0.10",
+                    "examples": [
+                      "0.10"
+                    ]
                   },
                   "reserveUsd": {
                     "type": "string",
                     "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "example": "0.25",
+                    "examples": [
+                      "0.25"
+                    ]
                   }
                 },
                 "additionalProperties": false
